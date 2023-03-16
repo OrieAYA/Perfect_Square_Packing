@@ -1,6 +1,28 @@
 package Piles;
+import java.lang.reflect.Array;
+import java.util.Iterator;
 
-public class ListeChaineePile<E> implements Pile<E> {
+public class ListeChaineePile<E> implements Pile<E>{
+
+    @Override
+    public Iterator<E> iterator() {
+        return new Itr();
+    }
+
+    private class Itr implements Iterator<E>{
+
+        Noeud courant = sommet;
+
+        @Override
+        public boolean hasNext() {
+            return courant!=debut;
+        }
+
+        @Override
+        public E next() {
+            return (E) (courant = courant.before);
+        }
+    }
 
     private class Noeud{
         E valeur;
@@ -16,41 +38,43 @@ public class ListeChaineePile<E> implements Pile<E> {
 
     public ListeChaineePile(){
         debut = null;
-        fin = null;
+        sommet = debut;
     }
 
     private Noeud debut;
-    private Noeud fin;
+
+    private Noeud sommet;
 
     @Override
     public boolean empiler(E element) {
-        if(debut==null){
-            debut = new Noeud(element,null,null);
-            fin = debut;
+        Noeud node = new Noeud(element,null,sommet);
+        if(sommet==null){
+            debut = node;
         }
         else{
-            Noeud node = new Noeud(element,null,fin);
-            fin.next = node;
-            fin = node;
+            sommet.next = node;
         }
+        sommet = node;
         return true;
     }
 
     @Override
     public E depiler() {
-        if(debut == fin) {
+        Noeud s = sommet;
+        if(debut == sommet) {
             debut = null;
-            fin = null;
-            return null;
+            sommet = null;
         }
-        fin.before.next = null;
-        fin = fin.before;
-        return fin.valeur;
+        else {
+            sommet.before.next = null;
+            sommet = sommet.before;
+        }
+        return s.valeur;
     }
 
     @Override
     public E sommet() {
-        if(fin.valeur!=null)return fin.valeur;
+        if(!this.estVide())return sommet.valeur;
         return null;
     }
 

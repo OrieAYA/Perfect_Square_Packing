@@ -1,6 +1,7 @@
 package Piles;
 
 import java.lang.reflect.Array;
+import java.util.Iterator;
 
 public class TabStatiquePile<E> implements Pile<E>{
 
@@ -47,5 +48,25 @@ public class TabStatiquePile<E> implements Pile<E>{
     @Override
     public void vider() {
         while(!this.estVide())this.depiler();
+    }
+
+    @Override
+    public Iterator<E> iterator() {
+        return new Itr();
+    }
+
+    private class Itr implements Iterator<E>{
+
+        int courant = sommet;
+
+        @Override
+        public boolean hasNext() {
+            return courant>0;
+        }
+
+        @Override
+        public E next() {
+            return elements[--courant];
+        }
     }
 }

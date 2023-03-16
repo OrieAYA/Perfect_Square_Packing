@@ -1,6 +1,6 @@
 package Piles;
 
-public interface Pile<E> {
+public interface Pile<E> extends Iterable<E> {
 
     /**
      * @param element
@@ -11,7 +11,6 @@ public interface Pile<E> {
     boolean empiler(E element);
 
     /**
-     * @param element
      * Depile un élément de la pile
      * Renvoie null si pile vide, E sinon
      * @return E
