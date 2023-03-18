@@ -3,12 +3,19 @@ import Piles.Pile;
 
 public class Packing {
 
-    private static int taille;
-    private static int[][] carre;
 
-    private Packing(int taille){
+    private class bloc{
+
+        private static int[] taille = new int[2];
+        private ListeChaineePile blocs;
+
+    }
+    private ListeChaineePile blocs;
+
+    private Packing(int taille, ListeChaineePile blocs){
         this.taille = taille;
-        carre = new int[taille][taille];
+        model = new int[taille][taille];
+        this.blocs = blocs;
     }
 
 
@@ -19,8 +26,7 @@ public class Packing {
     public static void main(String[] args){
 
         for(SquarePackingInstance e : SquarePackingInstance.values()){
-            Packing carre = new Packing(e.taille);
-            carre.packEverything(e.elements);
+            Packing carre = new Packing(e.taille,e.elements);
         }
 
     }
