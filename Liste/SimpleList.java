@@ -11,7 +11,7 @@ public class SimpleList<E> implements List<E>{
 
     private class Itr implements Iterator<E>{
 
-        Noeud courant = fin;
+        Noeud courant = debut;
 
         @Override
         public boolean hasNext() {
@@ -20,7 +20,9 @@ public class SimpleList<E> implements List<E>{
 
         @Override
         public E next() {
-            return (E) (courant = courant.before);
+            E n = courant.valeur;
+            courant = courant.next;
+            return n;
         }
     }
 
@@ -46,7 +48,6 @@ public class SimpleList<E> implements List<E>{
 
     private Noeud debut;
     private Noeud courant;
-
     private Noeud fin;
 
     @Override
@@ -54,10 +55,11 @@ public class SimpleList<E> implements List<E>{
         Noeud e = new Noeud(element, null, null, 0);
         if(estVide()){
             debut = e;
+            courant = debut;
         }
         else{
             e.before = fin;
-            e.index = e.before.index++;
+            e.index = e.before.index+1;
             if(e.index%2==0)courant = courant.next;
             fin.next = e;
         }

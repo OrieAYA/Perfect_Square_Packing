@@ -1,4 +1,4 @@
-import Piles.ListeChaineePile;
+import Liste.SimpleList;
 
 public enum SquarePackingInstance {
 
@@ -10,13 +10,13 @@ public enum SquarePackingInstance {
     PS_3(110, /**/ 1, 2, 3, 4, 6, 8, 9, 12, 14, 16, 17, 18, 19, 21, 22, 23, 24, 26, 27, 28, 50, 60);
 
     public final int taille;
-    public final ListeChaineePile elements;
+    public final SimpleList elements;
 
     SquarePackingInstance(int taille, int... elements) {
         this.taille = taille;
-        this.elements = new ListeChaineePile<>();
+        this.elements = new SimpleList<>();
         for(int i : elements){
-            this.elements.empiler(i);
+            this.elements.ajouter(i);
         }
     }
 }
