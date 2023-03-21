@@ -15,7 +15,7 @@ public interface List<E> extends Iterable<E> {
      * Renvoie null si pile vide, E sinon
      * @return E
      */
-    E retirer(int index);
+    E retirer(E element);
 
     /**
      * Retourne null si pile vide, E ( sommet ) sinon

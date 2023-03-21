@@ -1,6 +1,7 @@
 import Liste.List;
 import Liste.SimpleList;
 import Liste.SimpleSortedList;
+import java.util.ArrayList;
 
 public class Packing {
 
@@ -34,17 +35,19 @@ public class Packing {
 
     }
 
-    private SimpleList remainingBlocs;
-    private SimpleList placedBlocs;
+    private SimpleSortedList<bloc> remainingBlocs;
+    private SimpleList<bloc> placedBlocs;
     private SimpleList<pos> anchorPoints;
     private int taille;
     private int[][] model;
     private int aire;
 
-    private Packing(int taille, SimpleList blocs){
+    private Packing(int taille, SimpleList<Integer> blocs){
         this.taille = taille;
         this.model = new int[taille][taille];
-        this.remainingBlocs = blocs;
+        for(int i : blocs) {
+            this.remainingBlocs.ajouter(new bloc(new pos(i,i), new pos(-1, -1)));
+        }
         this.aire = taille * taille;
     }
 
@@ -52,37 +55,45 @@ public class Packing {
     private void packEverything(){
         if(remainingBlocs.estVide())this.generateModel();
         anchorPoints = this.findAllAnchorPoints();
-        List<bloc> airesOfBlocs = new SimpleSortedList<>();
+        List<bloc> aireBlocs = new SimpleSortedList<>();
         for(pos p : anchorPoints){
-            airesOfBlocs.ajouter(new bloc(findLengths(), p));
-            if(airesOfBlocs.dernier().aire > aire/2)break;
+            aireBlocs.ajouter(new bloc(findLengths(p), p));
+            if(aireBlocs.dernier().aire > aire/2)break;
         }
-        if(airesOfBlocs.estVide())return;
+        if(aireBlocs.estVide())return;
         else{
-            this.placeBloc(airesOfBlocs.dernier());
+            this.placeBloc(aireBlocs.dernier());
         }
-        aire = calculeAire(findPointsExtremite());
     }
 
     private void placeBloc(bloc dernier) {
-
-        
-
+        bloc b = remainingBlocs.dernier();
+        while(b.lengths.posx > dernier.lengths.posx && b.lengths.posy > b.lengths.posy || b != null) b = remainingBlocs.decrement(b);
+        if(b == null)return;
+        remainingBlocs.retirer(b);
+        b.pos.posx = dernier.pos.posx;
+        b.pos.posy = dernier.pos.posy;
+        aire -= dernier.aire;
+        placedBlocs.ajouter(b);
     }
 
-    private SimpleList findPointsExtremite() {
-
-        return new SimpleList<pos>();
-
-    }
-
-    private pos findLengths() {
-
-        return new pos(0,0);
-
+    private pos findLengths(pos p) {
+        int x = taille - p.posy;
+        int y = taille - p.posx;
+        for(bloc b : placedBlocs){
+            if(b.pos.posy >= p.posy && b.pos.posx + b.lengths.posx > p.posx && b.pos.posy - p.posy < x){
+                x = b.pos.posy - p.posy;
+                if(b.pos.posx >= p.posx && b.pos.posy + b.lengths.posy > p.posy && b.pos.posx - p.posx < y){
+                    y = b.pos.posx - p.posx;
+                }
+            }
+        }
+        return new pos(x, y);
     }
 
     private SimpleList<pos> findAllAnchorPoints() {
+
+        return new SimpleList<pos>();
 
     }
 
@@ -92,11 +103,6 @@ public class Packing {
 
     private void printModel() {
 
-    }
-
-    private static int calculeAire(List<pos> pointExtremite){
-        int aire = 0;
-        return aire;
     }
 
     public static void main(String[] args){

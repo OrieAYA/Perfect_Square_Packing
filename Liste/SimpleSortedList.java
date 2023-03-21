@@ -2,23 +2,13 @@ package Liste;
 
 public class SimpleSortedList<E> extends SimpleList<E>{
 
-    private class Noeud{
-        E valeur;
-        int index;
-        Noeud next;
-        Noeud before;
-
-        Noeud(E valeur, Noeud next, Noeud before, int index){
-            this.valeur = valeur;
-            this.index = index;
-            this.next = next;
-            this.before = before;
-        }
-    }
-
     private Noeud debut;
     private Noeud courant;
     private Noeud fin;
+
+    public SimpleSortedList(){
+        super();
+    }
 
     public boolean ajouter(E element){
         Noeud e = new Noeud(element, null, null, 0);
@@ -38,6 +28,10 @@ public class SimpleSortedList<E> extends SimpleList<E>{
             if(cr == fin)fin = e;
         }
         return true;
+    }
+
+    public E decrement(E element){
+        return (E) find(element).before.valeur;
     }
 
 }

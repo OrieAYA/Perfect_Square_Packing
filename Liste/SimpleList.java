@@ -20,23 +20,9 @@ public class SimpleList<E> implements List<E>{
 
         @Override
         public E next() {
-            E n = courant.valeur;
+            E n = (E) courant.valeur;
             courant = courant.next;
             return n;
-        }
-    }
-
-    private class Noeud{
-        E valeur;
-        int index;
-        Noeud next;
-        Noeud before;
-
-        Noeud(E valeur, Noeud next, Noeud before, int index){
-            this.valeur = valeur;
-            this.index = index;
-            this.next = next;
-            this.before = before;
         }
     }
 
@@ -65,6 +51,10 @@ public class SimpleList<E> implements List<E>{
         }
         fin = e;
         return true;
+    }
+
+    public E get(int index){
+        return (E) find(index).valeur;
     }
 
     private Noeud find(int index){
@@ -97,9 +87,21 @@ public class SimpleList<E> implements List<E>{
         return e;
     }
 
+    public Noeud find(E f){
+        Noeud e = debut;
+        while(e.hashCode()!=f.hashCode() || e != null){
+            e = e.next;
+        }
+        if(e!=null)return e;
+        else return null;
+    }
+
     @Override
-    public E retirer(int index) {
-        Noeud e = find(index);
+    public E retirer(E element) {
+        return retirer(find(element));
+    }
+
+    public E retirer(Noeud e) {
         if(e.next != null && e.before != null) {
             e.next.before = e.before;
             e.before.next = e.next;
@@ -120,17 +122,17 @@ public class SimpleList<E> implements List<E>{
             else if(e==courant && e.before != null)courant = e.before;
         }
 
-        return e.valeur;
+        return (E) e.valeur;
     }
 
     @Override
     public E dernier() {
-        return fin.valeur;
+        return (E) fin.valeur;
     }
 
     @Override
     public E recuperer(int index) {
-        return find(index).valeur;
+        return (E) find(index).valeur;
     }
 
     @Override
@@ -145,7 +147,7 @@ public class SimpleList<E> implements List<E>{
 
     @Override
     public void vider() {
-        while(!estVide())retirer(fin.index);
+        while(!estVide())retirer(fin);
     }
 
 }

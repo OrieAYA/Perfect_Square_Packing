@@ -14,7 +14,7 @@ public enum SquarePackingInstance {
 
     SquarePackingInstance(int taille, int... elements) {
         this.taille = taille;
-        this.elements = new SimpleList<>();
+        this.elements = new SimpleList<Integer>();
         for(int i : elements){
             this.elements.ajouter(i);
         }
