@@ -39,12 +39,10 @@ public class Packing {
     private SimpleList<bloc> placedBlocs;
     private SimpleList<pos> anchorPoints;
     private int taille;
-    private int[][] model;
     private int aire;
 
     private Packing(int taille, SimpleList<Integer> blocs){
         this.taille = taille;
-        this.model = new int[taille][taille];
         for(int i : blocs) {
             this.remainingBlocs.ajouter(new bloc(new pos(i,i), new pos(-1, -1)));
         }
@@ -53,16 +51,15 @@ public class Packing {
 
 
     private void packEverything(){
-        if(remainingBlocs.estVide())this.generateModel();
-        anchorPoints = this.findAllAnchorPoints();
-        List<bloc> aireBlocs = new SimpleSortedList<>();
+        if(remainingBlocs.estVide())this.printModel();
+        List<bloc> aireBlocs = this.findAllAnchorPoints();
         for(pos p : anchorPoints){
-            aireBlocs.ajouter(new bloc(findLengths(p), p));
             if(aireBlocs.dernier().aire > aire/2)break;
         }
         if(aireBlocs.estVide())return;
         else{
             this.placeBloc(aireBlocs.dernier());
+            this.packEverything();
         }
     }
 
@@ -80,6 +77,7 @@ public class Packing {
     private pos findLengths(pos p) {
         int x = taille - p.posy;
         int y = taille - p.posx;
+        int z;
         for(bloc b : placedBlocs){
             if(b.pos.posy >= p.posy && b.pos.posx + b.lengths.posx > p.posx && b.pos.posy - p.posy < x){
                 x = b.pos.posy - p.posy;
@@ -91,17 +89,54 @@ public class Packing {
         return new pos(x, y);
     }
 
-    private SimpleList<pos> findAllAnchorPoints() {
+    private SimpleList<bloc> findAllAnchorPoints() {
 
-        return new SimpleList<pos>();
+        SimpleList<bloc> anchors = new SimpleList<>();
+
+        for(bloc b : placedBlocs){
+            pos x = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
+            pos d = findLengths(x);
+            if(d.posx != 0 && d.posy != 0){
+                int y = 0;
+                for(bloc p : placedBlocs){
+                    if(p.pos.posy + p.lengths.posy <= d.posy && p.pos.posx + p.lengths.posx > d.posy && p.pos.posy + p.lengths.posy > y) y = p.pos.posy + p.lengths.posy;
+                }
+                d.posy = y;
+                anchors.ajouter(new bloc(x, d));
+            }
+            pos y = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
+            d = findLengths(y);
+            if(d.posx != 0 && d.posy != 0){
+                int z = 0;
+                for(bloc p : placedBlocs){
+                    if(p.pos.posx + p.lengths.posx <= d.posx && p.pos.posy + p.lengths.posy > d.posx && p.pos.posx + p.lengths.posx > z) z = p.pos.posx + p.lengths.posx;
+                }
+                d.posy = z;
+                anchors.ajouter(new bloc(y, d));
+            }
+        }
+
+        return anchors;
 
     }
 
-    private void generateModel() {
+    private bloc findAnchor(){
+
+        return new bloc(null, null);
 
     }
 
     private void printModel() {
+
+        int[][] model = new int[taille][taille];
+
+        for(bloc i : placedBlocs){
+            for(int x = i.pos.posx; x < i.pos.posx + i.lengths.posx; x++){
+                for(int y = i.pos.posy; y < i.pos.posy + i.lengths.posy; y++){
+                    model[x][y] = taille;
+                }
+            }
+        }
 
     }
 
@@ -110,7 +145,6 @@ public class Packing {
         for(SquarePackingInstance e : SquarePackingInstance.values()){
             Packing carre = new Packing(e.taille,e.elements);
             carre.packEverything();
-            carre.printModel();
         }
 
     }
