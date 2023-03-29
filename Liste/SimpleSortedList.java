@@ -15,10 +15,11 @@ public class SimpleSortedList<E> extends SimpleList<E>{
         if(estVide()){
             debut = e;
             courant = debut;
+            fin = debut;
         }
         else{
             Noeud cr = debut;
-            while (e.valeur.hashCode() < cr.valeur.hashCode() || cr != null)cr = cr.next;
+            while (cr != null)cr = cr.next;
             e.before = cr;
             e.next = cr.next;
             cr.next = e;
@@ -28,6 +29,10 @@ public class SimpleSortedList<E> extends SimpleList<E>{
             if(cr == fin)fin = e;
         }
         return true;
+    }
+
+    public boolean estVide() {
+        return debut==null;
     }
 
     public E decrement(E element){

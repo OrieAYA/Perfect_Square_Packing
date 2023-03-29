@@ -89,11 +89,10 @@ public class SimpleList<E> implements List<E>{
 
     public Noeud find(E f){
         Noeud e = debut;
-        while(e.hashCode()!=f.hashCode() || e != null){
+        while(e != null && e.valeur!=f){
             e = e.next;
         }
-        if(e!=null)return e;
-        else return null;
+        return e;
     }
 
     @Override
@@ -102,25 +101,36 @@ public class SimpleList<E> implements List<E>{
     }
 
     public E retirer(Noeud e) {
+        if(e.next == null && e.before == null){
+            E v = (E) e.valeur;
+            debut = null;
+            fin = debut;
+            courant = debut;
+            return v;
+        }
+        //Si le Noeud est entre 2 Noeud
         if(e.next != null && e.before != null) {
             e.next.before = e.before;
             e.before.next = e.next;
         }
+        //Si le Noeud est à la fin
         else if(e.next == null){
             e.before.next = null;
         }
+        //Si le Noeud est au début
         else{
             e.next.before = null;
         }
 
-        if(e.next != null) {
-            if (e == debut) debut = e.next;
-            else if(e==courant)courant = e.next;
+        if (e == debut) debut = e.next;
+        else if (e == fin) fin = e.before;
+        if(e==courant) {
+            if (e.next != null && e.index%2 == 0)courant = e.next;
+            else if (e.before != null)courant = e.before;
         }
-        else if(e.before != null) {
-            if (e == fin) fin = e.before;
-            else if(e==courant && e.before != null)courant = e.before;
-        }
+
+        Noeud n = e;
+        while ((n = n.next) != null) n.index--;
 
         return (E) e.valeur;
     }
@@ -137,7 +147,7 @@ public class SimpleList<E> implements List<E>{
 
     @Override
     public boolean estVide() {
-        return debut==fin;
+        return debut==null;
     }
 
     @Override

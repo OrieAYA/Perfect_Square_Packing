@@ -35,9 +35,8 @@ public class Packing {
 
     }
 
-    private SimpleSortedList<bloc> remainingBlocs;
-    private SimpleList<bloc> placedBlocs;
-    private SimpleList<pos> anchorPoints;
+    private SimpleList<bloc> remainingBlocs = new SimpleList<bloc>();
+    private SimpleList<bloc> placedBlocs = new SimpleList<bloc>();
     private int taille;
     private int aire;
 
@@ -51,34 +50,44 @@ public class Packing {
 
 
     private void packEverything(){
-        if(remainingBlocs.estVide())this.printModel();
+        if(this.remainingBlocs.estVide()){
+            this.printModel();
+            return;
+        }
         List<bloc> aireBlocs = this.findAllAnchorPoints();
-        for(pos p : anchorPoints){
-            if(aireBlocs.dernier().aire > aire/2)break;
-        }
         if(aireBlocs.estVide())return;
-        else{
-            this.placeBloc(aireBlocs.dernier());
-            this.packEverything();
+        bloc max = aireBlocs.dernier();
+        for(bloc p : aireBlocs){
+            if(p.aire >= this.aire/2){
+                max = p;
+                break;
+            }
+            else if(p.aire > max.aire)max = p;
         }
+        this.placeBloc(max);
+        this.packEverything();
     }
 
     private void placeBloc(bloc dernier) {
-        bloc b = remainingBlocs.dernier();
-        while(b.lengths.posx > dernier.lengths.posx && b.lengths.posy > b.lengths.posy || b != null) b = remainingBlocs.decrement(b);
-        if(b == null)return;
-        remainingBlocs.retirer(b);
+        bloc b = this.remainingBlocs.dernier();
+        for(bloc n : this.remainingBlocs){
+            if(fitIn(n, dernier) && b != null && fitIn(b, n)) b = n;
+        }
+        this.remainingBlocs.retirer(b);
         b.pos.posx = dernier.pos.posx;
         b.pos.posy = dernier.pos.posy;
-        aire -= dernier.aire;
-        placedBlocs.ajouter(b);
+        this.aire -= dernier.aire;
+        this.placedBlocs.ajouter(b);
+    }
+
+    private boolean fitIn(bloc n, bloc d){
+        return n.lengths.posx <= d.lengths.posx && n.lengths.posy <= d.lengths.posy;
     }
 
     private pos findLengths(pos p) {
-        int x = taille - p.posy;
-        int y = taille - p.posx;
-        int z;
-        for(bloc b : placedBlocs){
+        int x = this.taille - p.posy;
+        int y = this.taille - p.posx;
+        for(bloc b : this.placedBlocs){
             if(b.pos.posy >= p.posy && b.pos.posx + b.lengths.posx > p.posx && b.pos.posy - p.posy < x){
                 x = b.pos.posy - p.posy;
                 if(b.pos.posx >= p.posx && b.pos.posy + b.lengths.posy > p.posy && b.pos.posx - p.posx < y){
@@ -86,33 +95,44 @@ public class Packing {
                 }
             }
         }
-        return new pos(x, y);
+        return new pos(y, x);
     }
 
     private SimpleList<bloc> findAllAnchorPoints() {
 
         SimpleList<bloc> anchors = new SimpleList<>();
 
-        for(bloc b : placedBlocs){
-            pos x = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
-            pos d = findLengths(x);
-            if(d.posx != 0 && d.posy != 0){
-                int y = 0;
-                for(bloc p : placedBlocs){
-                    if(p.pos.posy + p.lengths.posy <= d.posy && p.pos.posx + p.lengths.posx > d.posy && p.pos.posy + p.lengths.posy > y) y = p.pos.posy + p.lengths.posy;
+        if(this.placedBlocs.estVide()){
+            anchors.ajouter(new bloc(new pos(this.taille, this.taille), new pos(0,0)));
+        }
+        else {
+            for (bloc b : this.placedBlocs) {
+                //Angle Haut Droit du bloc
+                pos x = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
+                pos bLen = findLengths(x);
+                if (bLen.posx != 0 && bLen.posy != 0) {
+                    for (bloc p : this.placedBlocs) {
+                        if (goThroughtTop(p, x)){
+                            int xY = x.posy;
+                            x.posy = p.pos.posy + p.lengths.posy;
+                            bLen.posy += (xY - x.posy);
+                        }
+                    }
+                    anchors.ajouter(new bloc(bLen, x));
                 }
-                d.posy = y;
-                anchors.ajouter(new bloc(x, d));
-            }
-            pos y = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
-            d = findLengths(y);
-            if(d.posx != 0 && d.posy != 0){
-                int z = 0;
-                for(bloc p : placedBlocs){
-                    if(p.pos.posx + p.lengths.posx <= d.posx && p.pos.posy + p.lengths.posy > d.posx && p.pos.posx + p.lengths.posx > z) z = p.pos.posx + p.lengths.posx;
+                //Angle Bas Gauche du bloc
+                pos y = new pos(b.pos.posx, b.pos.posy + b.lengths.posy);
+                bLen = findLengths(y);
+                if (bLen.posx != 0 && bLen.posy != 0) {
+                    for (bloc p : this.placedBlocs) {
+                        if (goThroughtLeft(p, y)){
+                            int yX = y.posx;
+                            y.posx = p.pos.posx + p.lengths.posx;
+                            bLen.posx += (yX - y.posx);
+                        }
+                    }
+                    anchors.ajouter(new bloc(bLen, y));
                 }
-                d.posy = z;
-                anchors.ajouter(new bloc(y, d));
             }
         }
 
@@ -120,23 +140,36 @@ public class Packing {
 
     }
 
-    private bloc findAnchor(){
+    private boolean goThroughtLeft(bloc p, pos x){
+        return (x.posy >= p.pos.posy && x.posy < p.pos.posy + p.lengths.posy && x.posx >= p.pos.posx + p.lengths.posx);
+    }
 
-        return new bloc(null, null);
+    private boolean goThroughtTop(bloc p, pos x){
+        return (x.posx >= p.pos.posx && x.posx < p.pos.posx + p.lengths.posx && x.posy >= p.pos.posy + p.lengths.posy);
+    }
 
+    private boolean goThrought(bloc p, pos x, pos bLen){
+        //Point Ancrage dans le carré supérieure gauche ancré du projeté de p et point projeté dans le carré bas droit d'ancrage du point d'ancrage de p
+        return ((x.posx < p.pos.posx + p.lengths.posx && x.posy < p.pos.posy + p.lengths.posy) && (x.posx + bLen.posx > p.pos.posx && x.posy + bLen.posy > p.pos.posy));
     }
 
     private void printModel() {
 
-        int[][] model = new int[taille][taille];
+        for(bloc i : this.placedBlocs){
+            System.out.println("Lx : " + i.lengths.posx + ", Ly : " + i.lengths.posy + ", Px : " + i.pos.posx + ", Py : " + i.pos.posy + ", aire : " + i.aire);
+        }
 
-        for(bloc i : placedBlocs){
+        /*
+        int[][] model = new int[this.taille][this.taille];
+
+        for(bloc i : this.placedBlocs){
             for(int x = i.pos.posx; x < i.pos.posx + i.lengths.posx; x++){
                 for(int y = i.pos.posy; y < i.pos.posy + i.lengths.posy; y++){
-                    model[x][y] = taille;
+                    model[x][y] = this.taille;
                 }
             }
         }
+         */
 
     }
 
@@ -145,6 +178,7 @@ public class Packing {
         for(SquarePackingInstance e : SquarePackingInstance.values()){
             Packing carre = new Packing(e.taille,e.elements);
             carre.packEverything();
+            break;
         }
 
     }

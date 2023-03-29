@@ -12,4 +12,5 @@ public class Noeud<E>{
         this.next = next;
         this.before = before;
     }
+
 }
