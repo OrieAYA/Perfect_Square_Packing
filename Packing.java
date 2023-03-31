@@ -69,14 +69,22 @@ public class Packing {
     }
 
     private void placeBloc(bloc dernier) {
-        bloc b = this.remainingBlocs.dernier();
+        bloc b = null;
         for(bloc n : this.remainingBlocs){
-            if(fitIn(n, dernier) && b != null && fitIn(b, n)) b = n;
+            if(fitIn(n, dernier)){
+                b = n;
+                break;
+            }
+        }
+        if(b == null)return;
+        for(bloc n : this.remainingBlocs){
+            if(fitIn(n, dernier) && fitIn(b, n))
+                b = n;
         }
         this.remainingBlocs.retirer(b);
         b.pos.posx = dernier.pos.posx;
         b.pos.posy = dernier.pos.posy;
-        this.aire -= dernier.aire;
+        this.aire -= b.aire;
         this.placedBlocs.ajouter(b);
     }
 
@@ -88,11 +96,11 @@ public class Packing {
         int x = this.taille - p.posy;
         int y = this.taille - p.posx;
         for(bloc b : this.placedBlocs){
-            if(b.pos.posy >= p.posy && b.pos.posx + b.lengths.posx > p.posx && b.pos.posy - p.posy < x){
+            if(goThroughtBottom(b, p) && b.pos.posy - p.posy < x){
                 x = b.pos.posy - p.posy;
-                if(b.pos.posx >= p.posx && b.pos.posy + b.lengths.posy > p.posy && b.pos.posx - p.posx < y){
-                    y = b.pos.posx - p.posx;
-                }
+            }
+            if(goThroughtRight(b, p) && b.pos.posx - p.posx < y){
+                y = b.pos.posx - p.posx;
             }
         }
         return new pos(y, x);
@@ -111,12 +119,18 @@ public class Packing {
                 pos x = new pos(b.pos.posx + b.lengths.posx, b.pos.posy);
                 pos bLen = findLengths(x);
                 if (bLen.posx != 0 && bLen.posy != 0) {
+                    int collide = -1;
                     for (bloc p : this.placedBlocs) {
                         if (goThroughtTop(p, x)){
-                            int xY = x.posy;
-                            x.posy = p.pos.posy + p.lengths.posy;
-                            bLen.posy += (xY - x.posy);
+                            if((p.pos.posy + p.lengths.posy) > collide){
+                                collide = p.pos.posy + p.lengths.posy;
+                            }
                         }
+                    }
+                    if(collide != -1) {
+                        int xY = x.posy;
+                        x.posy = collide;
+                        bLen.posy += (xY - x.posy);
                     }
                     anchors.ajouter(new bloc(bLen, x));
                 }
@@ -124,12 +138,18 @@ public class Packing {
                 pos y = new pos(b.pos.posx, b.pos.posy + b.lengths.posy);
                 bLen = findLengths(y);
                 if (bLen.posx != 0 && bLen.posy != 0) {
+                    int collide = -1;
                     for (bloc p : this.placedBlocs) {
                         if (goThroughtLeft(p, y)){
-                            int yX = y.posx;
-                            y.posx = p.pos.posx + p.lengths.posx;
-                            bLen.posx += (yX - y.posx);
+                            if((p.pos.posx + p.lengths.posx) > collide){
+                                collide = p.pos.posx + p.lengths.posx;
+                            }
                         }
+                    }
+                    if(collide != -1) {
+                        int yX = y.posx;
+                        y.posx = collide;
+                        bLen.posx += (yX - y.posx);
                     }
                     anchors.ajouter(new bloc(bLen, y));
                 }
@@ -146,6 +166,14 @@ public class Packing {
 
     private boolean goThroughtTop(bloc p, pos x){
         return (x.posx >= p.pos.posx && x.posx < p.pos.posx + p.lengths.posx && x.posy >= p.pos.posy + p.lengths.posy);
+    }
+
+    private boolean goThroughtRight(bloc p, pos x){
+        return (x.posy >= p.pos.posy && x.posy < p.pos.posy + p.lengths.posy && x.posx <= p.pos.posx);
+    }
+
+    private boolean goThroughtBottom(bloc p, pos x){
+        return (x.posx >= p.pos.posx && x.posx < p.pos.posx + p.lengths.posx && x.posy <= p.pos.posy);
     }
 
     private boolean goThrought(bloc p, pos x, pos bLen){
