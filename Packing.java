@@ -203,11 +203,18 @@ public class Packing {
 
     public static void main(String[] args){
 
+        SquarePackingInstance PS_DD_2 = SquarePackingInstance.PS_DD_2;
+
+        Packing carre = new Packing(PS_DD_2.taille, PS_DD_2.elements);
+        carre.packEverything();
+
+        /*
         for(SquarePackingInstance e : SquarePackingInstance.values()){
+            System.out.println(e.taille + " : ");
             Packing carre = new Packing(e.taille,e.elements);
             carre.packEverything();
-            break;
         }
+         */
 
     }
 
